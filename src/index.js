@@ -1,17 +1,24 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { Provider } from 'react-redux'
+import jwt_decode from 'jwt-decode'
+
+import './index.css'
+import App from './App'
+import store from './store'
+import setAuthToken from './features/auth/setAuthToken'
+import { setCurrentUser } from './features/auth/authSlice'
+
+if (localStorage.token) {
+  setAuthToken(localStorage.token)
+  store.dispatch(setCurrentUser(jwt_decode(localStorage.token)))
+}
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
-);
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+)
