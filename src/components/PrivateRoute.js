@@ -9,7 +9,7 @@ export function PrivateRoute({ children, ...rest }) {
     <Route
       {...rest}
       render={({ location }) =>
-        isUserLoggedIn ? (
+        isUserLoggedIn !== undefined && isUserLoggedIn ? (
           children
         ) : (
           <Redirect

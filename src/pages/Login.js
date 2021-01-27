@@ -1,22 +1,23 @@
 import { Form, Input, Button, Card } from 'antd'
 import { useDispatch } from 'react-redux'
-import { useHistory, useLocation } from 'react-router-dom'
 import { login } from '../features/auth/authSlice'
 import { unwrapResult } from '@reduxjs/toolkit'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export const Login = () => {
   const [err, setError] = useState(null)
   const dispatch = useDispatch()
-  const history = useHistory()
-  let location = useLocation()
-
-  let { from } = location.state || { from: { pathname: '/' } }
 
   const onFinish = (values) => {
-    dispatch(login(values)).then((e) => setError(unwrapResult(e)))
-    // history.replace(from)
+    dispatch(login(values)).then((err) => err && setError(unwrapResult(err)))
   }
+
+  useEffect(() => {
+    return () => {
+      setError(false)
+    }
+  }, [])
+
   return (
     <Card style={{ width: '400px', margin: '10em auto' }}>
       <Form

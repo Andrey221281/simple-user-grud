@@ -23,6 +23,12 @@ const authSlice = createSlice({
         state.user = payload.token
         state.isUserLoggedIn = true
       }
+    },
+    logout: {
+      reducer(state) {
+        localStorage.removeItem('token')
+        state.isUserLoggedIn = false
+      }
     }
   },
   extraReducers: {
@@ -45,6 +51,7 @@ const authSlice = createSlice({
   }
 })
 
-export const { setCurrentUser } = authSlice.actions
+export const { setCurrentUser, logout } = authSlice.actions
 export const selectorIsAuth = (state) => state.authSlice.isUserLoggedIn
+export const selectorUser = (state) => state.authSlice.user
 export default authSlice.reducer

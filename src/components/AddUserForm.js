@@ -1,26 +1,57 @@
 import { unwrapResult } from '@reduxjs/toolkit'
 import { Form, Input, Button } from 'antd'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { createUser } from '../features/users/usersSlice'
+import { createUser, updateUser } from '../features/users/usersSlice'
 
-export const AddUserForm = () => {
+export const AddUserForm = ({ user }) => {
   const [err, setError] = useState(null)
+  const [update, setUpdate] = useState(false)
   const dispatch = useDispatch()
+  const [form] = Form.useForm()
+
+  useEffect(() => {
+    if (!user) return
+    setUpdate(true)
+    form.setFieldsValue({
+      ...user
+    })
+  }, [form, user])
 
   const onFinish = (values) => {
-    dispatch(createUser(values)).then((e) => setError(unwrapResult(e)))
+    if (update) {
+      dispatch(updateUser({ id: user.id, values }))
+        .then((e) => {
+          form.resetFields()
+          setUpdate(true)
+          setError(unwrapResult(e))
+        })
+        .finally(() => setUpdate(false))
+    } else {
+      dispatch(createUser(values))
+        .then((e) => {
+          form.resetFields()
+          setUpdate(true)
+          setError(unwrapResult(e))
+        })
+        .finally(() => setUpdate(false))
+    }
   }
+
+  // const onReset = () => {
+  //   form.resetFields()
+  //   setUpdate(false)
+  // }
 
   return (
     <Form
+      form={form}
       name="AddUserForm"
       layout="inline"
       initialValues={{ remember: true }}
       onFinish={onFinish}
     >
       <Form.Item
-        // label="Username"
         name="username"
         rules={[{ required: true, message: 'Please input your username!' }]}
       >
@@ -29,10 +60,9 @@ export const AddUserForm = () => {
 
       <Form.Item
         name="email"
-        placeholder="email"
         rules={[{ required: true, message: 'Please input your email!' }]}
       >
-        <Input placeholder="email" />
+        <Input placeholder="email" value="value value" />
       </Form.Item>
 
       <Form.Item
@@ -43,8 +73,9 @@ export const AddUserForm = () => {
       </Form.Item>
 
       <Button type="primary" htmlType="submit">
-        Submit
+        {user && update ? `Update ${user.username}` : 'Add user'}
       </Button>
+
       {err && <div style={{ color: 'tomato' }}>{err.message}</div>}
     </Form>
   )

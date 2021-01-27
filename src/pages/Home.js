@@ -1,15 +1,21 @@
-import { Table, Space, Input } from 'antd'
+import { Table, Input, Button } from 'antd'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AddUserForm } from '../components/AddUserForm'
-import { getUsers, selectorUsers } from '../features/users/usersSlice'
+import {
+  deleteUser,
+  getUsers,
+  selectorUsers
+} from '../features/users/usersSlice'
 import { SearchOutlined } from '@ant-design/icons'
+import { logout } from '../features/auth/authSlice'
 
-const { Column } = Table
-const { Search } = Input
+import './home.css'
 
 export const Home = () => {
-  const [filteredInfo, setfilteredInfo] = useState('Andrey')
+  const [filteredInfo, setfilteredInfo] = useState([])
+  const [user, setUser] = useState(null)
+
   const dispatch = useDispatch()
   const { users, status } = useSelector(selectorUsers)
 
@@ -17,60 +23,97 @@ export const Home = () => {
     dispatch(getUsers())
   }, [dispatch])
 
-  const handleChange = (pagination, filters, sorter) => {
-    console.log('Various parameters', pagination, filters, sorter)
+  const handleChange = (e) => {
+    setfilteredInfo({ username: [e.target.value] } || null)
   }
 
+  const hanldeUser = (record) => {
+    setUser(record)
+  }
+
+  const columns = [
+    {
+      title: 'id',
+      dataIndex: 'id',
+      key: 'id',
+      width: '6%',
+      ellipsis: true,
+      editable: true,
+      align: 'center'
+    },
+    {
+      title: 'Username',
+      dataIndex: 'username',
+      key: 'username',
+      width: '37%',
+      filteredValue: filteredInfo.username || null,
+      onFilter: (value, record) =>
+        record.username.toLowerCase().includes(value.toLowerCase()),
+      ellipsis: true,
+      editable: true
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+      width: '37%',
+      ellipsis: true,
+      editable: true
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      width: '20%',
+      align: 'center',
+      render: (text, record) => (
+        <>
+          <Button
+            danger
+            style={{ display: 'inline' }}
+            onClick={() => dispatch(deleteUser(record.id))}
+          >
+            Delete
+          </Button>
+          <Button
+            style={{ display: 'inline', marginLeft: '1em' }}
+            onClick={() => hanldeUser(record)}
+          >
+            Update
+          </Button>
+        </>
+      )
+    }
+  ]
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '10em auto' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginBottom: '2em'
-        }}
-      >
-        <Search
-          style={{ width: '400px' }}
-          placeholder="search user"
-          loading={false}
-          enterButton
-        />
-        <AddUserForm />
-      </div>
-      <Table
+    <div className="wrap">
+      <header>
+        <span>Users</span>
+        <Button
+          type="primary"
+          className="logout"
+          onClick={() => dispatch(logout())}
+        >
+          logout
+        </Button>
+      </header>
+
+      <Input
+        className="input-search"
+        placeholder="search user"
+        prefix={<SearchOutlined />}
         onChange={handleChange}
+      />
+      <AddUserForm user={user} />
+
+      <Table
         loading={status === 'loading'}
+        columns={columns}
         dataSource={users}
-        bordered
         rowKey={(record) => record.id}
-      >
-        <Column widt="10" title="Id" dataIndex="id" key="id" />
-        <Column
-          title="Username"
-          dataIndex="username"
-          key="username"
-          filteredValue={filteredInfo.username || null}
-          onFilter={(value, record) => record.username.includes(value)}
-        />
-        <Column title="Email" dataIndex="email" key="email" />
-        <Column
-          title="Action"
-          key="company.catchPhrase"
-          render={(text, record) => (
-            <Space size="middle">
-              <a>Invite {record.name}</a>
-              <a>Delete</a>
-            </Space>
-          )}
-        />
-      </Table>
-      {/* {state.map((user) => (
-        <div key={user.id}>
-          <div>{user.name}</div>
-          <div>{user.email}</div>
-        </div>
-      ))} */}
+        bordered
+        handleChange={handleChange}
+      />
     </div>
   )
 }
